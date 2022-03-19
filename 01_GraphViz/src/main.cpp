@@ -2,14 +2,18 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <cmath>
 #include "SimpleGraph.h"
 
 using namespace std;
+
+#define kPi 3.14159265358979323
 
 void Welcome();
 void readGraph(SimpleGraph & graph);
 bool wellFormedNodesNumber(ifstream & graphFile, SimpleGraph & graph);
 bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph);
+void initiallyPositionNodes(SimpleGraph & myGraph);
 string GetLine();
 
 // Main method
@@ -17,6 +21,11 @@ int main() {
     Welcome();
     SimpleGraph myGraph;
     readGraph(myGraph);
+    cout << "graph file is read" << endl;
+    initiallyPositionNodes(myGraph);
+    cout << "nodes are initially positioned" << endl;
+    DrawGraph(myGraph);
+    cout << "graph is drawn" << endl;
     return 0;
 }
 
@@ -30,7 +39,7 @@ void Welcome() {
 }
 
 void readGraph(SimpleGraph & graph) {
-    int numberOfNodes;
+    //int numberOfNodes;
     ifstream graphFile;
     cout << "Enter the name of graph file: ";
     string graphFileName = GetLine();
@@ -105,6 +114,16 @@ bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph) {
         }
     }
     return result;
+}
+
+void initiallyPositionNodes(SimpleGraph & myGraph) {
+    int numberOfNodes = myGraph.nodes.size();
+    cout << "Number of nodes: " << numberOfNodes << endl;
+    for (int k = 0; k < numberOfNodes; ++k) {
+        double angle = 2 * kPi * (k + 1) / numberOfNodes;
+        myGraph.nodes.at(k).x = cos(angle);
+        myGraph.nodes.at(k).y = sin(angle);
+    }
 }
 
 string GetLine() {
