@@ -8,12 +8,20 @@
 using namespace std;
 
 #define kPi 3.14159265358979323
+#define kRepel 0.001
+#define kAttract 0.001
 
 void Welcome();
 void readGraph(SimpleGraph & graph);
 bool wellFormedNodesNumber(ifstream & graphFile, SimpleGraph & graph);
 bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph);
 void initiallyPositionNodes(SimpleGraph & myGraph);
+void computeRepulsiveForce(const Node & node0, const Node & node1,
+                           double & dx0, double & dy0,
+                           double & dx1, double & dy1);
+void computeAttractForce(const Node & node0, const Node & node1,
+                         double & dx0, double & dy0,
+                         double & dx1, double & dy1);
 string GetLine();
 
 // Main method
@@ -124,6 +132,40 @@ void initiallyPositionNodes(SimpleGraph & myGraph) {
         myGraph.nodes.at(k).x = cos(angle);
         myGraph.nodes.at(k).y = sin(angle);
     }
+}
+
+void computeRepulsiveForce(const Node & node0, const Node & node1,
+                           double & dx0, double & dy0,
+                           double & dx1, double & dy1) {
+    double x0 = node0.x;
+    double y0 = node0.y;
+    double x1 = node1.x;
+    double y1 = node1.y;
+    double xDiff = x1 - x0;
+    double yDiff = y1 - y0;
+    double fRepel = kRepel / sqrt(xDiff * xDiff + yDiff * yDiff);
+    double theta = atan2(yDiff, xDiff);
+    dx1 =  fRepel * cos(theta);
+    dy1 =  fRepel * sin(theta);
+    dx0 =  0.0 - dx1;
+    dy0 =  0.0 - dy1;
+}
+
+void computeAttractForce(const Node & node0, const Node & node1,
+                         double & dx0, double & dy0,
+                         double & dx1, double & dy1) {
+    double x0 = node0.x;
+    double y0 = node0.y;
+    double x1 = node1.x;
+    double y1 = node1.y;
+    double xDiff = x1 - x0;
+    double yDiff = y1 - y0;
+    double fAttract = kAttract / (xDiff * xDiff + yDiff * yDiff);
+    double theta = atan2(yDiff, xDiff);
+    dx0 =  fAttract * cos(theta);
+    dy0 =  fAttract * sin(theta);
+    dx1 =  0.0 - dx0;
+    dy1 =  0.0 - dy0;
 }
 
 string GetLine() {
