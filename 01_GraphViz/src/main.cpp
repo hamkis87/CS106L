@@ -22,6 +22,7 @@ void computeRepulsiveForce(const Node & node0, const Node & node1,
 void computeAttractForce(const Node & node0, const Node & node1,
                          double & dx0, double & dy0,
                          double & dx1, double & dy1);
+//void moveNodes(SimpleGraph & graph);
 string GetLine();
 
 // Main method
@@ -34,6 +35,10 @@ int main() {
     cout << "nodes are initially positioned" << endl;
     DrawGraph(myGraph);
     cout << "graph is drawn" << endl;
+    for(int i = 0; i < 10; ++i) {
+        moveNodes(myGraph);
+        DrawGraph(myGraph);
+    }
     return 0;
 }
 
@@ -145,10 +150,12 @@ void computeRepulsiveForce(const Node & node0, const Node & node1,
     double yDiff = y1 - y0;
     double fRepel = kRepel / sqrt(xDiff * xDiff + yDiff * yDiff);
     double theta = atan2(yDiff, xDiff);
-    dx1 =  fRepel * cos(theta);
-    dy1 =  fRepel * sin(theta);
-    dx0 =  0.0 - dx1;
-    dy0 =  0.0 - dy1;
+    double xComponent = fRepel * cos(theta);
+    double yComponent = fRepel * sin(theta);
+    dx0 -=  xComponent;
+    dy0 -=  yComponent;
+    dx1 +=  xComponent;
+    dy1 +=  yComponent;
 }
 
 void computeAttractForce(const Node & node0, const Node & node1,
@@ -162,10 +169,12 @@ void computeAttractForce(const Node & node0, const Node & node1,
     double yDiff = y1 - y0;
     double fAttract = kAttract / (xDiff * xDiff + yDiff * yDiff);
     double theta = atan2(yDiff, xDiff);
-    dx0 =  fAttract * cos(theta);
-    dy0 =  fAttract * sin(theta);
-    dx1 =  0.0 - dx0;
-    dy1 =  0.0 - dy0;
+    double xComponent = fAttract * cos(theta);
+    double yComponent = fAttract * sin(theta);
+    dx0 +=  xComponent;
+    dy0 +=  yComponent;
+    dx1 -=  xComponent;
+    dy1 -=  yComponent;
 }
 
 string GetLine() {
