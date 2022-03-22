@@ -22,20 +22,23 @@ void computeRepulsiveForce(const Node & node0, const Node & node1,
 void computeAttractForce(const Node & node0, const Node & node1,
                          double & dx0, double & dy0,
                          double & dx1, double & dy1);
-//void moveNodes(SimpleGraph & graph);
+void moveNodes(SimpleGraph & graph);
 string GetLine();
 
 // Main method
 int main() {
     Welcome();
     SimpleGraph myGraph;
+    InitGraphVisualizer(myGraph);
     readGraph(myGraph);
     cout << "graph file is read" << endl;
     initiallyPositionNodes(myGraph);
     cout << "nodes are initially positioned" << endl;
-    DrawGraph(myGraph);
-    cout << "graph is drawn" << endl;
-    for(int i = 0; i < 10; ++i) {
+    cout << "graph before" << endl;
+    for(int i = 0; i < myGraph.nodes.size(); ++i) {
+        cout << "graph node at " << i << ": " << myGraph.nodes.at(i).x << " , " << myGraph.nodes.at(i).y << endl;
+    }
+    for(int i = 0; i < 100000; ++i) {
         moveNodes(myGraph);
         DrawGraph(myGraph);
     }
@@ -167,7 +170,7 @@ void computeAttractForce(const Node & node0, const Node & node1,
     double y1 = node1.y;
     double xDiff = x1 - x0;
     double yDiff = y1 - y0;
-    double fAttract = kAttract / (xDiff * xDiff + yDiff * yDiff);
+    double fAttract = kAttract * (xDiff * xDiff + yDiff * yDiff);
     double theta = atan2(yDiff, xDiff);
     double xComponent = fAttract * cos(theta);
     double yComponent = fAttract * sin(theta);
@@ -175,6 +178,48 @@ void computeAttractForce(const Node & node0, const Node & node1,
     dy0 +=  yComponent;
     dx1 -=  xComponent;
     dy1 -=  yComponent;
+}
+
+void moveNodes(SimpleGraph & graph) {
+    std::vector<Node> nodesLocationsDelta;   // this vector stores the cumulative dx and dy for each node
+    int numberOfNodes = graph.nodes.size();
+    int numberOfEdges = graph.edges.size();
+    nodesLocationsDelta.resize(numberOfNodes);
+    for(int i = 0; i < numberOfNodes; ++i) { // initialize dx and dy for all nodes
+        nodesLocationsDelta.at(i).x = 0.0;
+        nodesLocationsDelta.at(i).y = 0.0;
+
+    }
+    for(int i = 0; i < numberOfNodes - 1; ++i) {  // update dx and dy for all nodes based on repulsive force
+        Node node0 = graph.nodes.at(i);
+        for(int j = i+1; j < numberOfNodes; ++j) {
+            //if(i != j) {
+                Node node1 = graph.nodes.at(j);
+                computeRepulsiveForce(node0, node1,
+                                      nodesLocationsDelta.at(i).x,
+                                      nodesLocationsDelta.at(i).y,
+                                      nodesLocationsDelta.at(j).x,
+                                      nodesLocationsDelta.at(j).y);
+            //}
+        }
+    }
+    for(int k = 0; k < numberOfEdges; ++k) { // update dx and dy for all nodes based on attract force
+        Edge e = graph.edges.at(k);
+        int i = e.start;
+        int j = e.end;
+        Node node0 = graph.nodes.at(i);
+        Node node1 = graph.nodes.at(j);
+        computeAttractForce(node0, node1,
+                            nodesLocationsDelta.at(i).x,
+                            nodesLocationsDelta.at(i).y,
+                            nodesLocationsDelta.at(j).x,
+                            nodesLocationsDelta.at(j).y);
+    }
+    for(int i = 0; i < numberOfNodes; ++i) { // update each node location according to its dx and dy
+        graph.nodes.at(i).x += nodesLocationsDelta.at(i).x;
+        graph.nodes.at(i).y += nodesLocationsDelta.at(i).y;
+        //cout << "graph node at " << i << ": " << graph.nodes.at(i).x << " , " << graph.nodes.at(i).y << endl;
+    }
 }
 
 string GetLine() {
