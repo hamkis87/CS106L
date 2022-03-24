@@ -3,6 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <cmath>
+#include <ctime>
 #include "SimpleGraph.h"
 
 using namespace std;
@@ -13,6 +14,7 @@ using namespace std;
 
 void Welcome();
 void readGraph(SimpleGraph & graph);
+int getSimulationDuration();
 bool wellFormedNodesNumber(ifstream & graphFile, SimpleGraph & graph);
 bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph);
 void initiallyPositionNodes(SimpleGraph & myGraph);
@@ -31,14 +33,10 @@ int main() {
     SimpleGraph myGraph;
     InitGraphVisualizer(myGraph);
     readGraph(myGraph);
-    cout << "graph file is read" << endl;
+    int simulationDuration = getSimulationDuration();
     initiallyPositionNodes(myGraph);
-    cout << "nodes are initially positioned" << endl;
-    cout << "graph before" << endl;
-    for(int i = 0; i < myGraph.nodes.size(); ++i) {
-        cout << "graph node at " << i << ": " << myGraph.nodes.at(i).x << " , " << myGraph.nodes.at(i).y << endl;
-    }
-    for(int i = 0; i < 100000; ++i) {
+    time_t startTime = time(NULL);
+    while(difftime(time(NULL), startTime) < simulationDuration) {
         moveNodes(myGraph);
         DrawGraph(myGraph);
     }
@@ -64,19 +62,31 @@ void readGraph(SimpleGraph & graph) {
         cerr << "Cannot find the file" << graphFileName << endl;
     }
     else {
-        cout << "file read success" << endl;
-        if(wellFormedNodesNumber(graphFile, graph)) {
-            cout << "number of nodes = " << graph.nodes.size() << endl;
-            if(wellFormedEdges(graphFile, graph)) {
-                cout << "well formed edges" << endl;
-                cout << "No. of Edges: " << graph.edges.size() << endl;
-            }
+        if(!(wellFormedNodesNumber(graphFile, graph) &&
+           wellFormedEdges(graphFile, graph))) {
+                cerr << "file is not well-formed." << endl;
         }
-        else {
-            cerr << "Number of Nodes is not well-formed." << endl;
-        }
-
     }
+}
+
+int getSimulationDuration() {
+    int duration;            // duration in seconds
+    cout << "Number of seconds to run the algorithm: ";
+    string durationAsString = GetLine();
+    stringstream converter;
+    converter << durationAsString;
+    /* Try reading an int, continue if we succeeded. */
+    if(converter >> duration) {
+        char remaining;
+        if(converter >> remaining) { // Something's left, input is invalid
+            cout << "Unexpected character: " << remaining << endl;
+            return 0;
+        }
+        else
+            return duration;
+    }
+    else
+        return 0;
 }
 
 bool wellFormedNodesNumber(ifstream & graphFile, SimpleGraph & graph) {
@@ -116,7 +126,6 @@ bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph) {
                 return false;
             }
             else {
-                cout << "start: " << start << "end: " << end << endl;
                 Edge edge;
                 edge.start = start;
                 edge.end = end;
@@ -134,7 +143,6 @@ bool wellFormedEdges(ifstream & graphFile, SimpleGraph & graph) {
 
 void initiallyPositionNodes(SimpleGraph & myGraph) {
     int numberOfNodes = myGraph.nodes.size();
-    cout << "Number of nodes: " << numberOfNodes << endl;
     for (int k = 0; k < numberOfNodes; ++k) {
         double angle = 2 * kPi * (k + 1) / numberOfNodes;
         myGraph.nodes.at(k).x = cos(angle);
@@ -218,7 +226,6 @@ void moveNodes(SimpleGraph & graph) {
     for(int i = 0; i < numberOfNodes; ++i) { // update each node location according to its dx and dy
         graph.nodes.at(i).x += nodesLocationsDelta.at(i).x;
         graph.nodes.at(i).y += nodesLocationsDelta.at(i).y;
-        //cout << "graph node at " << i << ": " << graph.nodes.at(i).x << " , " << graph.nodes.at(i).y << endl;
     }
 }
 
